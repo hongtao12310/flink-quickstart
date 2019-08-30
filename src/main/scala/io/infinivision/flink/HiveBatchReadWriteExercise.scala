@@ -4,14 +4,14 @@ import org.apache.flink.table.api.config.ExecutionConfigOptions.TABLE_EXEC_RESOU
 import org.apache.flink.table.catalog.hive.HiveCatalog
 import org.apache.flink.table.api.{EnvironmentSettings, TableEnvironment, TableSchema}
 
-object HiveBatchExerciser {
+object HiveBatchReadWriteExercise {
 
   def main(args: Array[String]): Unit = {
 
     // create Blink Planner Table Environment
     val settings = EnvironmentSettings.newInstance().useBlinkPlanner().inBatchMode().build()
     val tEnv = TableEnvironment.create(settings)
-    tEnv.getConfig.getConfiguration.setInteger(TABLE_EXEC_RESOURCE_DEFAULT_PARALLELISM.key, 30)
+    tEnv.getConfig.getConfiguration.setInteger(TABLE_EXEC_RESOURCE_DEFAULT_PARALLELISM.key, 20)
 
     //    val tEnv = StreamTableEnvironment.create(env, settings)
     val hiveCatalog = new HiveCatalog("infinivision_hive", "infinivision_cdp",
