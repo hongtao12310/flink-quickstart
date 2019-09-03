@@ -2,13 +2,14 @@ package io.infinivision.flink
 
 import java.util
 
-import org.apache.flink.table.api.config.ExecutionConfigOptions.TABLE_EXEC_RESOURCE_DEFAULT_PARALLELISM
-import org.apache.flink.table.catalog.hive.HiveCatalog
 import org.apache.flink.table.api.{DataTypes, EnvironmentSettings, TableEnvironment, TableSchema}
+import org.apache.flink.table.api.config.ExecutionConfigOptions.TABLE_EXEC_RESOURCE_DEFAULT_PARALLELISM
+import org.apache.flink.table.catalog.config.CatalogConfig
 import org.apache.flink.table.catalog.{CatalogTableImpl, ObjectPath}
+import org.apache.flink.table.catalog.hive.HiveCatalog
+import org.apache.flink.table.planner.utils.JavaScalaConversionUtil
 
-object HiveBatchReadWriteExercise {
-
+object HiveBatchWritePartitionTableExercise {
   def main(args: Array[String]): Unit = {
 
     // create Blink Planner Table Environment
@@ -22,8 +23,6 @@ object HiveBatchReadWriteExercise {
 
     tEnv.registerCatalog("infinivision_hive", hiveCatalog)
     tEnv.useCatalog("infinivision_hive")
-    println(s"CataLogs: ${tEnv.listCatalogs()}")
-    println(s"Tables: ${tEnv.listTables()}")
 
     // create output table
     val schema = TableSchema.builder
@@ -40,9 +39,15 @@ object HiveBatchReadWriteExercise {
       .build
 
 
+    // create partition table
     val properties: util.Map[String, String] = new util.HashMap[String, String]
+    properties.put(CatalogConfig.IS_GENERIC, "false")
+    val partitionKeys = Array("mobile_city")
     val path = new ObjectPath("infinivision_cdp", "cdp_campaign_mid_tag_ordered_flink")
-    val table = new CatalogTableImpl(schema, properties, "hive table")
+    val table = new CatalogTableImpl(schema,
+      JavaScalaConversionUtil.toJava(partitionKeys),
+      properties,
+      "hive partition table")
     hiveCatalog.createTable(path, table, true)
     tEnv.sqlUpdate(
       """
@@ -51,5 +56,4 @@ object HiveBatchReadWriteExercise {
       """.stripMargin)
     tEnv.execute("Flink-1.9 Hive Table ReadWrite Testing")
   }
-
 }
